@@ -76,8 +76,8 @@
                                     class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-4 px-8 rounded-2xl transition-all">Cancel</button>
                                 <button type="button" onclick="testDbConnection()"
                                     class="flex-1 bg-gray-100 hover:bg-gray-200 text-indigo-600 font-bold py-4 px-8 rounded-2xl transition-all">Test</button>
-                                <button type="button" onclick="saveDbConfig()"
-                                    class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-2xl transition-all shadow-lg">Save</button>
+                                <button type="button" onclick="saveDbConfig()" id="save-db-btn" disabled
+                                    class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-2xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">Save</button>
                             </div>
                         </form>
                     </div>
@@ -115,6 +115,11 @@
 @section('scripts')
     <script>
         const csrfToken = $('meta[name="csrf-token"]').attr('content');
+        let lastTestPassed = false;
+
+        function setSaveEnabled(isEnabled) {
+            $('#save-db-btn').prop('disabled', !isEnabled);
+        }
 
         function showListView() {
             $('#page-title').text("Database Connections");
@@ -133,6 +138,8 @@
             $('#db-form-container').removeClass('hidden');
             $('#db-config-form')[0].reset();
             $('#config-id-input').val("");
+            lastTestPassed = false;
+            setSaveEnabled(false);
             switchTab('db-config');
         }
 
@@ -162,6 +169,8 @@
                 form.elements['database'].value = data.database;
                 form.elements['username'].value = data.username;
                 form.elements['password'].value = "";
+                lastTestPassed = false;
+                setSaveEnabled(false);
             } catch (e) {
                 showToast("Error loading config: " + e.message);
             }
@@ -223,12 +232,21 @@
                 });
                 const result = await res.json();
                 showToast(result.message, result.success ? 'success' : 'error');
+                lastTestPassed = !!result.success;
+                setSaveEnabled(lastTestPassed);
             } catch (e) {
                 showToast("Connection test failed: " + e.message);
+                lastTestPassed = false;
+                setSaveEnabled(false);
             }
         }
 
         async function saveDbConfig() {
+            if (!lastTestPassed) {
+                showToast('Please test the connection successfully before saving.');
+                setSaveEnabled(false);
+                return;
+            }
             const formData = new FormData($('#db-config-form')[0]);
             const data = Object.fromEntries(formData.entries());
             const configId = $('#config-id-input').val();
@@ -348,6 +366,13 @@
             }
         }
 
-        $(document).ready(loadDbConfigs);
+        $(document).ready(function() {
+            loadDbConfigs();
+            setSaveEnabled(false);
+            $('#db-config-form').on('input', 'input, select', function() {
+                lastTestPassed = false;
+                setSaveEnabled(false);
+            });
+        });
     </script>
 @endsection

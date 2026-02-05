@@ -8,6 +8,7 @@ $(document).ready(function() {
     const $sendBtn = $('#send-btn');
     const csrfToken = $('meta[name="csrf-token"]').attr('content');
     let currentChatId = new URLSearchParams(window.location.search).get('chat_id');
+    let hasDbConfigs = false;
 
     // Initialize
     if (currentChatId) {
@@ -25,11 +26,13 @@ $(document).ready(function() {
 
     $dbSelector.on('change', function() {
         saveSelectedDatabase();
+        updateSendState();
     });
 
     $messageInput.on('input', function() {
         this.style.height = '';
         this.style.height = this.scrollHeight + 'px';
+        updateSendState();
     });
 
     $messageInput.on('keydown', function(e) {
@@ -51,6 +54,7 @@ $(document).ready(function() {
     window.sendPromptAndHide = function(text) {
         $('#welcome-section').remove();
         $messageInput.val(text);
+        updateSendState();
         handleSubmit();
     }
 
@@ -225,12 +229,13 @@ $(document).ready(function() {
             headers: { 'Accept': 'application/json' },
             success: function(data) {
                 const hasConfigs = data.databases.length > 0 || data.sqlFiles.length > 0;
-                
-                // Only show "Default DB" if there are other options, or always show it if no configs
+                hasDbConfigs = hasConfigs;
+
+                $dbSelector.html('');
                 if (hasConfigs) {
-                    $dbSelector.html('');
+                    $dbSelector.append('<option value="" selected>Select database...</option>');
                 } else {
-                    $dbSelector.html('<option value="default">Default DB</option>');
+                    $dbSelector.append('<option value="" selected>Please add your database first</option>');
                 }
 
                 data.databases.forEach(db => {
@@ -245,6 +250,7 @@ $(document).ready(function() {
 
                 // Restore previously selected database after options are loaded
                 restoreSelectedDatabase();
+                updateSendState();
             },
             error: function(e) {
                 console.error("Failed to load configs", e);
@@ -256,6 +262,8 @@ $(document).ready(function() {
         const selectedValue = $dbSelector.val();
         if (selectedValue) {
             localStorage.setItem('selectedDatabase', selectedValue);
+        } else {
+            localStorage.removeItem('selectedDatabase');
         }
     }
 
@@ -269,16 +277,38 @@ $(document).ready(function() {
         }
     }
 
+    function updateSendState() {
+        const message = $messageInput.val().trim();
+        const selectedDb = $dbSelector.val();
+        const canSend = message.length > 0 && hasDbConfigs && !!selectedDb;
+        $sendBtn.prop('disabled', !canSend);
+        if (!hasDbConfigs) {
+            $messageInput.prop('disabled', true).attr('placeholder', 'Please add your database first...');
+        } else {
+            $messageInput.prop('disabled', false).attr('placeholder', 'Enter an analysis prompt...');
+        }
+    }
+
     function handleSubmit() {
         const message = $messageInput.val().trim();
         if (!message) return;
+
+        if (!hasDbConfigs) {
+            showToast('Please add your database first');
+            return;
+        }
+
+        const selectedDb = $dbSelector.val();
+        if (!selectedDb) {
+            showToast('Please select a database first');
+            return;
+        }
 
         $('#welcome-section').remove();
         appendMessage('user', message);
         $messageInput.val('').css('height', 'auto');
 
         const loadingId = showLoading();
-        const selectedDb = $dbSelector.val();
 
         $.ajax({
             url: '/analytics/chat',
@@ -357,4 +387,5 @@ $(document).ready(function() {
         $('#toast-container').append($toast);
         setTimeout(() => $toast.remove(), 4000);
     }
+    updateSendState();
 });
