@@ -117,8 +117,8 @@ class AnalyticsController extends Controller
     public function loadHistory()
     {
         $histories = AnalyticsChatHistory::where('user_id', Auth::id() ?? 1)
-            ->orderBy('updated_at', 'desc')
-            ->get(['id', 'title', 'updated_at']);
+            ->orderBy('created_at', 'desc')
+            ->get(['id', 'title', 'created_at']);
         return response()->json($histories);
     }
 

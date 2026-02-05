@@ -124,6 +124,7 @@ $(document).ready(function() {
         $textEl.addClass('hidden');
         $textEl.parent().append($input);
         $input.focus();
+        $input.on('click mousedown', (e) => e.stopPropagation());
 
         const finish = (save) => {
             const newTitle = $input.val().trim();
@@ -148,6 +149,7 @@ $(document).ready(function() {
         };
 
         $input.on('keydown', (e) => {
+            e.stopPropagation();
             if (e.key === 'Enter') finish(true);
             if (e.key === 'Escape') finish(false);
         });
@@ -232,11 +234,13 @@ $(document).ready(function() {
                 }
 
                 data.databases.forEach(db => {
-                    $dbSelector.append($('<option>').val(`db:${db.id}`).text(`DB: ${db.name}`));
+                    // $dbSelector.append($('<option>').val(`db:${db.id}`).text(`DB: ${db.name}`));
+                    $dbSelector.append($('<option>').val(`db:${db.id}`).text(`${db.name}`));
                 });
 
                 data.sqlFiles.forEach(sql => {
-                    $dbSelector.append($('<option>').val(`sql:${sql.id}`).text(`SQL: ${sql.name}`));
+                    // $dbSelector.append($('<option>').val(`sql:${sql.id}`).text(`SQL: ${sql.name}`));
+                    $dbSelector.append($('<option>').val(`sql:${sql.id}`).text(`${sql.name}`));
                 });
 
                 // Restore previously selected database after options are loaded

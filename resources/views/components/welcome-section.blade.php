@@ -1,5 +1,5 @@
 <div id="welcome-section" class="py-12 text-center">
-    <h2 class="text-4xl md:text-5xl font-bold gemini-gradient mb-4">Market Insights</h2>
+    <h2 class="text-4xl md:text-5xl font-bold gemini-gradient mb-4">Play With Your Data</h2>
     <p class="text-xl text-gray-600 mb-12">Ask for revenue trends, forecasts, or custom reports.</p>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-left max-w-5xl mx-auto px-4">
