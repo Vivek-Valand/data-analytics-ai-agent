@@ -18,6 +18,14 @@ use App\Neuron\Tools\RunSqlTool;
 
 class ReportAgent extends Agent
 {
+    protected ?array $dbConfig = null;
+
+    public function withDbConfig(?array $config): self
+    {
+        $this->dbConfig = $config;
+        return $this;
+    }
+
     protected function provider(): AIProviderInterface
     {
         // return an instance of Anthropic, OpenAI, Gemini, Ollama, etc...
@@ -31,7 +39,7 @@ class ReportAgent extends Agent
     public function instructions(): string
     {
         $schema = app(SchemaFormatter::class)
-            ->format(app(SchemaFetcher::class)->fetch());
+            ->format(app(SchemaFetcher::class)->fetch($this->dbConfig));
 
         $prompt = "
             $schema
@@ -48,11 +56,13 @@ class ReportAgent extends Agent
             Rules:
             - **Conversational Memory**: Always refer to the previous tool results and messages in the conversation. If a user asks to \"generate report\" after a data query, use the data from that previous query.
             - **Security**: NEVER show database schema details, table names, or column names in your final response.
+            - **Error Handling**: If a database query fails, do not show the technical SQL error or technical details. Instead, suggest that there might be a connection issue or that the requested data is currently unavailable.
             - **Date Accuracy**: February 2026 HAS ONLY 28 DAYS. Never query for Feb 29, 2026.
-            - **Automatic CSV Export**: Whenever you fetch data using 'run_sql', you MUST ALSO immediately call 'export_report' to generate a download link. Always provide the download link at the end of every data-related response. Do not ask for permission.
-            - **STRICT Local Downloads**: Use ONLY the exact URL returned by 'export_report'. NEVER invent a link or use external hosting like Google Cloud Storage. Format: [Download Report](URL).
             - Always show dates in a human-friendly format (e.g., '06 May, 2025').
             - Present summaries in clear Markdown tables.
+            - **Conditional CSV Export**: Only generate a downloadable CSV report when the user explicitly requests it. Do not automatically call export_report after every run_sql or table display.
+            - **STRICT Local Downloads**: When generating a report, use only the exact URL returned by export_report. Never invent a link or use external storage. Format the link as: [Download Report](URL).
+            - **Table Display**: For large lists or tables, show them in the chat normally unless the user asks for a downloadable report.
         ";
 
         return (string) new SystemPrompt(
@@ -66,7 +76,7 @@ class ReportAgent extends Agent
     protected function tools(): array
     {
         return [
-            RunSqlTool::make(),
+            new RunSqlTool($this->dbConfig),
             ExportReportTool::make(),
         ];
     }

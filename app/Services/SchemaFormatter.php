@@ -10,14 +10,20 @@ class SchemaFormatter
 {
     public function format(array $schema): string
     {
-        $grouped = collect($schema)->groupBy('TABLE_NAME');
-        $output = "Database schema:\n";
+        $grouped = collect($schema)->groupBy(function ($item) {
+            return $item->table_name ?? $item->TABLE_NAME ?? $item['table_name'] ?? $item['TABLE_NAME'] ?? 'unknown';
+        });
+
+        $output = "Database schema (Tables and Columns):\n";
 
         foreach ($grouped as $table => $columns) {
-            /** @var Collection $columns */
-            $cols = $columns
-                ->map(fn ($c) => "{$c->COLUMN_NAME} {$c->DATA_TYPE}")
-                ->implode(', ');
+            if ($table === 'unknown') continue;
+            
+            $cols = $columns->map(function ($c) {
+                $name = $c->column_name ?? $c->COLUMN_NAME ?? $c['column_name'] ?? $c['COLUMN_NAME'] ?? 'unknown';
+                $type = $c->data_type ?? $c->DATA_TYPE ?? $c['data_type'] ?? $c['DATA_TYPE'] ?? '';
+                return "{$name} {$type}";
+            })->implode(', ');
 
             $output .= "{$table}({$cols})\n";
         }

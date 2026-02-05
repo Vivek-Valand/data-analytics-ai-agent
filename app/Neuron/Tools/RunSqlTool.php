@@ -8,14 +8,18 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use Illuminate\Support\Facades\Storage;
 use NeuronAI\Tools\PropertyType;
 use NeuronAI\Tools\Tool;
 use NeuronAI\Tools\ToolProperty;
 
 class RunSqlTool extends Tool
 {
-    public function __construct()
+    protected ?array $dbConfig = null;
+
+    public function __construct(?array $dbConfig = null)
     {
+        $this->dbConfig = $dbConfig;
         // Define Tool name and description
         parent::__construct(
             'run_sql',
@@ -49,6 +53,43 @@ class RunSqlTool extends Tool
             throw new InvalidArgumentException('Only SELECT queries are allowed for security reasons.');
         }
 
-        return DB::connection()->select($sql);
+        $connection = DB::connection();
+
+        if ($this->dbConfig) {
+            if (isset($this->dbConfig['type']) && $this->dbConfig['type'] === 'sql_file') {
+                $connectionName = 'dynamic_db_sql_' . ($this->dbConfig['id'] ?? 'temp');
+                config(['database.connections.' . $connectionName => [
+                    'driver' => 'sqlite',
+                    'database' => ':memory:',
+                    'prefix' => '',
+                ]]);
+                $connection = DB::connection($connectionName);
+                
+                // Import the SQL file
+                $sqlPath = $this->dbConfig['sql_file'];
+                if (Storage::disk('local')->exists($sqlPath)) {
+                    $fileContent = Storage::disk('local')->get($sqlPath);
+                    $connection->unprepared($fileContent);
+                }
+            } else {
+                $connectionName = 'dynamic_db_' . ($this->dbConfig['id'] ?? 'temp');
+                config(['database.connections.' . $connectionName => [
+                    'driver' => $this->dbConfig['connection'] ?? 'mysql',
+                    'host' => $this->dbConfig['host'],
+                    'port' => $this->dbConfig['port'],
+                    'database' => $this->dbConfig['database'],
+                    'username' => $this->dbConfig['username'],
+                    'password' => $this->dbConfig['password'],
+                    'charset' => 'utf8mb4',
+                    'collation' => 'utf8mb4_unicode_ci',
+                    'prefix' => '',
+                    'strict' => true,
+                    'engine' => null,
+                ]]);
+                $connection = DB::connection($connectionName);
+            }
+        }
+
+        return $connection->select($sql);
     }
 }

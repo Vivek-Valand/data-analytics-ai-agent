@@ -44,7 +44,31 @@ class AnalyticsController extends Controller
             }
 
             $history = (new ArrayChatHistory())->setMessages($messages);
-            $agent = ReportAgent::make()->withChatHistory($history);
+            
+            $dbConfig = null;
+            $dbConfigId = $request->input('db_config');
+            if ($dbConfigId && $dbConfigId !== 'default') {
+                if (str_starts_with($dbConfigId, 'db:')) {
+                    $id = explode(':', $dbConfigId)[1];
+                    $dbConfig = \App\Models\DatabaseConfiguration::find($id)?->toArray();
+                } elseif (str_starts_with($dbConfigId, 'sql:')) {
+                    $id = explode(':', $dbConfigId)[1];
+                    $sqlConfig = \App\Models\SqlFileConfig::find($id);
+                    if ($sqlConfig) {
+                        // For SQL files, we'll try to use a temporary SQLite connection
+                        // This is a simplified version: we inform the agent about the file
+                        $dbConfig = [
+                            'name' => $sqlConfig->name,
+                            'sql_file' => $sqlConfig->file_path,
+                            'type' => 'sql_file'
+                        ];
+                    }
+                }
+            }
+
+            $agent = ReportAgent::make()
+                ->withChatHistory($history)
+                ->withDbConfig($dbConfig);
 
             // Get response WITHOUT saving yet
             $response = $agent->chat(new UserMessage($request->message));
@@ -82,7 +106,11 @@ class AnalyticsController extends Controller
                 'chat_id' => $chatHistory->id
             ]);
         } catch (Exception $e) {
-            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            $message = $e->getMessage();
+            if ($e instanceof \Illuminate\Database\QueryException || str_contains($message, 'SQLSTATE')) {
+                $message = "Database connection error. Please check your database configuration and credentials.";
+            }
+            return response()->json(['status' => 'error', 'message' => $message], 500);
         }
     }
 

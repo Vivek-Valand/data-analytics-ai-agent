@@ -1,20 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.app')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Summarizer</title>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+@section('title', 'YouTube Summarizer')
+
+@section('styles')
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-        }
-
         .spinner {
             border: 3px solid rgba(0, 0, 0, 0.1);
             width: 24px;
@@ -34,26 +23,14 @@
             }
         }
     </style>
-</head>
+@endsection
 
-<body class="flex flex-col min-h-screen">
-
-    <div class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-                <div class="w-8 h-8 bg-red-600 rounded flex items-center justify-center text-white font-bold">YT</div>
-                <h1 class="text-xl font-bold text-gray-800">Summarizer</h1>
-            </div>
-            {{-- <a href="/event-kaboodles" class="text-gray-600 hover:text-gray-900 font-medium text-sm">Back to Chat</a> --}}
-        </div>
-    </div>
-
-    <div class="flex-1 flex flex-col items-center justify-center p-4">
+@section('content')
+    <div class="flex-1 flex flex-col items-center justify-center p-4 overflow-y-auto">
 
         <div class="w-full max-w-2xl text-center mb-8">
             <h2 class="text-3xl font-extrabold text-gray-900 mb-2">Video to Insight in Seconds</h2>
-            <p class="text-gray-500">Paste a YouTube or video URL below to get a comprehensive summary powered by AI.
-            </p>
+            <p class="text-gray-500">Paste a YouTube or video URL below to get a comprehensive summary powered by AI.</p>
         </div>
 
         <div class="w-full max-w-2xl bg-white rounded-xl shadow-lg p-6 md:p-8">
@@ -107,38 +84,30 @@
             </div>
 
         </div>
-
-        {{-- <p class="mt-8 text-center text-xs text-gray-400">
-            Powered by NeuronAI & Gemini. Not affiliated with YouTube.
-        </p> --}}
     </div>
+@endsection
 
+@section('scripts')
     <script>
-        const form = document.getElementById('summarize-form');
-        const loading = document.getElementById('loading');
-        const result = document.getElementById('result');
-        const resultContent = document.getElementById('result-content');
-        const errorMsg = document.getElementById('error-msg');
-        const submitBtn = document.getElementById('submit-btn');
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const csrfToken = $('meta[name="csrf-token"]').attr('content');
 
-        form.addEventListener('submit', async (e) => {
+        $('#summarize-form').on('submit', async function(e) {
             e.preventDefault();
-            const url = document.getElementById('url').value;
+            const url = $('#url').val();
 
             // Reset UI
-            result.classList.add('hidden');
-            errorMsg.classList.add('hidden');
-            loading.classList.remove('hidden');
-            submitBtn.disabled = true;
-            submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+            $('#result').addClass('hidden');
+            $('#error-msg').addClass('hidden');
+            $('#loading').removeClass('hidden');
+            $('#submit-btn').prop('disabled', true).addClass('opacity-75 cursor-not-allowed');
 
             try {
                 const response = await fetch('/youtube/summarize', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({
                         url
@@ -148,29 +117,24 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    resultContent.innerHTML = marked.parse(data.content);
-                    result.classList.remove('hidden');
+                    $('#result-content').html(marked.parse(data.content));
+                    $('#result').removeClass('hidden');
                 } else {
-                    errorMsg.textContent = data.message || 'Failed to generate summary.';
-                    errorMsg.classList.remove('hidden');
+                    $('#error-msg').text(data.message || 'Failed to generate summary.').removeClass('hidden');
                 }
             } catch (error) {
-                errorMsg.textContent = 'Network error. Please try again.';
-                errorMsg.classList.remove('hidden');
+                $('#error-msg').text('Network error. Please try again.').removeClass('hidden');
             } finally {
-                loading.classList.add('hidden');
-                submitBtn.disabled = false;
-                submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+                $('#loading').addClass('hidden');
+                $('#submit-btn').prop('disabled', false).removeClass('opacity-75 cursor-not-allowed');
             }
         });
 
         function copyToClipboard() {
-            const text = resultContent.innerText;
+            const text = $('#result-content').text();
             navigator.clipboard.writeText(text).then(() => {
-                alert('Copied to clipboard!');
+                showToast('Copied to clipboard!', 'success');
             });
         }
     </script>
-</body>
-
-</html>
+@endsection
