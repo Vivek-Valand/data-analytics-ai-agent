@@ -58,9 +58,10 @@ class RunSqlTool extends Tool
         if ($this->dbConfig) {
             if (isset($this->dbConfig['type']) && $this->dbConfig['type'] === 'sql_file') {
                 $connectionName = 'dynamic_db_sql_' . ($this->dbConfig['id'] ?? 'temp');
+                $tempDbPath = storage_path('app/temp_' . uniqid() . '.db');
                 config(['database.connections.' . $connectionName => [
                     'driver' => 'sqlite',
-                    'database' => ':memory:',
+                    'database' => $tempDbPath,
                     'prefix' => '',
                 ]]);
                 $connection = DB::connection($connectionName);
@@ -69,7 +70,15 @@ class RunSqlTool extends Tool
                 $sqlPath = $this->dbConfig['sql_file'];
                 if (Storage::disk('local')->exists($sqlPath)) {
                     $fileContent = Storage::disk('local')->get($sqlPath);
-                    $connection->unprepared($fileContent);
+                    try {
+                        $connection->unprepared($fileContent);
+                    } catch (\Exception $e) {
+                        // Clean up temp file
+                        if (file_exists($tempDbPath)) {
+                            unlink($tempDbPath);
+                        }
+                        throw $e;
+                    }
                 }
             } else {
                 $connectionName = 'dynamic_db_' . ($this->dbConfig['id'] ?? 'temp');

@@ -15,11 +15,16 @@ $(document).ready(function() {
     }
     loadHistory();
     loadDbConfigs();
+    restoreSelectedDatabase();
 
     // Event Handlers
     $analyticsForm.on('submit', function(e) {
         e.preventDefault();
         handleSubmit();
+    });
+
+    $dbSelector.on('change', function() {
+        saveSelectedDatabase();
     });
 
     $messageInput.on('input', function() {
@@ -177,6 +182,12 @@ $(document).ready(function() {
     }
 
     function loadChat(id) {
+        // If we're not on the analytics page, navigate there first
+        if (!window.location.pathname.includes('/analytics')) {
+            window.location.href = `/analytics?chat_id=${id}`;
+            return;
+        }
+
         currentChatId = id;
         const url = new URL(window.location);
         url.searchParams.set('chat_id', id);
@@ -211,7 +222,14 @@ $(document).ready(function() {
             type: 'GET',
             headers: { 'Accept': 'application/json' },
             success: function(data) {
-                $dbSelector.html('<option value="default">Default DB</option>');
+                const hasConfigs = data.databases.length > 0 || data.sqlFiles.length > 0;
+                
+                // Only show "Default DB" if there are other options, or always show it if no configs
+                if (hasConfigs) {
+                    $dbSelector.html('');
+                } else {
+                    $dbSelector.html('<option value="default">Default DB</option>');
+                }
 
                 data.databases.forEach(db => {
                     $dbSelector.append($('<option>').val(`db:${db.id}`).text(`DB: ${db.name}`));
@@ -220,11 +238,31 @@ $(document).ready(function() {
                 data.sqlFiles.forEach(sql => {
                     $dbSelector.append($('<option>').val(`sql:${sql.id}`).text(`SQL: ${sql.name}`));
                 });
+
+                // Restore previously selected database after options are loaded
+                restoreSelectedDatabase();
             },
             error: function(e) {
                 console.error("Failed to load configs", e);
             }
         });
+    }
+
+    function saveSelectedDatabase() {
+        const selectedValue = $dbSelector.val();
+        if (selectedValue) {
+            localStorage.setItem('selectedDatabase', selectedValue);
+        }
+    }
+
+    function restoreSelectedDatabase() {
+        const savedDatabase = localStorage.getItem('selectedDatabase');
+        if (savedDatabase) {
+            // Check if the option exists before setting it
+            if ($dbSelector.find(`option[value="${savedDatabase}"]`).length > 0) {
+                $dbSelector.val(savedDatabase);
+            }
+        }
     }
 
     function handleSubmit() {
