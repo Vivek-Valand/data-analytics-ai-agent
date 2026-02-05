@@ -17,9 +17,9 @@
                 <button onclick="switchTab('db-config')" id="tab-db-config"
                     class="px-8 py-4 text-sm font-bold border-b-2 border-indigo-600 text-indigo-600 transition-all uppercase tracking-wider">Database
                     Config</button>
-                <button onclick="switchTab('sql-import')" id="tab-sql-import"
+                {{-- <button onclick="switchTab('sql-import')" id="tab-sql-import"
                     class="px-8 py-4 text-sm font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-700 transition-all uppercase tracking-wider">SQL
-                    File Import</button>
+                    File Import</button> --}}
             </div>
 
             <div class="p-8">

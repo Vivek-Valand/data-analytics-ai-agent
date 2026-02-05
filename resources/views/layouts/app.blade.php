@@ -10,7 +10,7 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <link rel="stylesheet" href="/css/app.css">
     @yield('styles')
 </head>
 
@@ -25,7 +25,7 @@
     <div id="sidebar-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-20 hidden md:hidden"></div>
     <div id="toast-container" class="fixed top-6 right-6 z-50 flex flex-col gap-3"></div>
 
-    <script src="{{ asset('js/app.js') }}"></script>
+    <script src="/js/app.js"></script>
     @yield('scripts')
 </body>
 

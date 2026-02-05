@@ -63,6 +63,8 @@ class ReportAgent extends Agent
             - **Conditional CSV Export**: Only generate a downloadable CSV report when the user explicitly requests it. Do not automatically call export_report after every run_sql or table display.
             - **STRICT Local Downloads**: When generating a report, use only the exact URL returned by export_report. Never invent a link or use external storage. Format the link as: [Download Report](URL).
             - **Table Display**: For large lists or tables, show them in the chat normally unless the user asks for a downloadable report.
+            - **Table Display**: Do NOT display sensitive or payment-related fields in tables, including but not limited to: token, payment_id, stripe_payment_method_id, stripe_customer_id, or any other Stripe-related identifiers.
+            - **Table Display**: If a data table contains many columns or exceeds the available horizontal space, render it within a horizontally scrollable container. Ensure the table remains readable and responsive across devices.
         ";
 
         return (string) new SystemPrompt(

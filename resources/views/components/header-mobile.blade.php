@@ -4,6 +4,6 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
     </button>
-    <h1 class="text-lg font-bold gemini-gradient">Analytics Agent</h1>
+    <h1 class="text-lg font-bold gemini-gradient">Data Analytics Agent</h1>
     <div class="w-10"></div>
 </div>

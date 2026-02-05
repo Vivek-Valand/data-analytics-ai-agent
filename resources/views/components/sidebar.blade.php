@@ -3,7 +3,7 @@
 
     <div class="p-6">
         <a href="/analytics"
-            class="text-xl font-bold text-white flex items-center gap-2 mb-8 hover:text-indigo-400 transition-colors">
+            class="text-xl font-bold text-white flex items-center gap-2 mb-8 transition-colors">
             <span
                 class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-sm group-hover:bg-indigo-400">
                 <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -12,7 +12,9 @@
                     </path>
                 </svg>
             </span>
-            Analytics Agent
+            <p class='hover:text-indigo-400'>
+                Data Analytics Agent
+            </p>
         </a>
 
         <button onclick="startNewChat()"
@@ -41,7 +43,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
             </svg>
-            Database Config
+            Database Configuration
         </a>
     </div>
 
