@@ -1,5 +1,5 @@
 <?php
-echo "deploye successfully";
+
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 
