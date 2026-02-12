@@ -54,6 +54,7 @@ class RunSqlTool extends Tool
         }
 
         $connection = DB::connection();
+        $baseConfig = null;
 
         if ($this->dbConfig) {
             if (isset($this->dbConfig['type']) && $this->dbConfig['type'] === 'sql_file') {
@@ -82,7 +83,7 @@ class RunSqlTool extends Tool
                 }
             } else {
                 $connectionName = 'dynamic_db_' . ($this->dbConfig['id'] ?? 'temp');
-                config(['database.connections.' . $connectionName => [
+                $baseConfig = [
                     'driver' => $this->dbConfig['connection'] ?? 'mysql',
                     'host' => $this->dbConfig['host'],
                     'port' => $this->dbConfig['port'],
@@ -94,11 +95,34 @@ class RunSqlTool extends Tool
                     'prefix' => '',
                     'strict' => true,
                     'engine' => null,
-                ]]);
+                ];
+                config(['database.connections.' . $connectionName => $baseConfig]);
                 $connection = DB::connection($connectionName);
             }
         }
 
-        return $connection->select($sql);
+        try {
+            return $connection->select($sql);
+        } catch (\Exception $e) {
+            $message = $e->getMessage();
+            $isTableMissing = str_contains($message, 'SQLSTATE[42S02]') || str_contains($message, 'Base table or view not found');
+            if ($isTableMissing && $baseConfig && !empty($this->dbConfig['databases']) && is_array($this->dbConfig['databases'])) {
+                $connectionName = 'dynamic_db_' . ($this->dbConfig['id'] ?? 'temp');
+                foreach ($this->dbConfig['databases'] as $database) {
+                    if (!$database) {
+                        continue;
+                    }
+                    try {
+                        config(['database.connections.' . $connectionName => $baseConfig + ['database' => $database]]);
+                        $retryConnection = DB::connection($connectionName);
+                        return $retryConnection->select($sql);
+                    } catch (\Exception $retryException) {
+                        continue;
+                    }
+                }
+            }
+
+            throw $e;
+        }
     }
 }

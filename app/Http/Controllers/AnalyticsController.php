@@ -10,8 +10,11 @@ use NeuronAI\Chat\Messages\UserMessage;
 use NeuronAI\Chat\Messages\AssistantMessage;
 use App\Neuron\History\ArrayChatHistory;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Exception;
 use App\Services\MarkdownRenderer;
+use App\Models\DatabaseConfiguration;
 
 class AnalyticsController extends Controller
 {
@@ -66,6 +69,25 @@ class AnalyticsController extends Controller
                 }
             }
 
+            if ($dbConfig && !isset($dbConfig['type'])) {
+                $availableDatabases = $this->listDatabases($dbConfig);
+                if (!empty($availableDatabases)) {
+                    $dbConfig['databases'] = $availableDatabases;
+                    $selectedDatabase = $this->matchDatabaseSelection($request->message, $availableDatabases);
+                    $currentDatabase = $dbConfig['database'] ?? null;
+
+                    if ($selectedDatabase) {
+                        $dbConfig['database'] = $selectedDatabase;
+                        if (!empty($dbConfig['id'])) {
+                            DatabaseConfiguration::where('id', $dbConfig['id'])
+                                ->update(['database' => $selectedDatabase]);
+                        }
+                    } elseif (empty($currentDatabase) || !in_array($currentDatabase, $availableDatabases, true)) {
+                        $dbConfig['database'] = $availableDatabases[0];
+                    }
+                }
+            }
+
             $agent = ReportAgent::make()
                 ->withChatHistory($history)
                 ->withDbConfig($dbConfig);
@@ -112,6 +134,108 @@ class AnalyticsController extends Controller
             }
             return response()->json(['status' => 'error', 'message' => $message], 500);
         }
+    }
+
+    private function listDatabases(array $dbConfig): array
+    {
+        $driver = $dbConfig['connection'] ?? 'mysql';
+        if ($driver !== 'mysql') {
+            return [];
+        }
+
+        $connectionName = 'probe_db_' . ($dbConfig['id'] ?? uniqid());
+        $baseConfig = [
+            'driver' => $driver,
+            'host' => $dbConfig['host'] ?? null,
+            'port' => $dbConfig['port'] ?? null,
+            'username' => $dbConfig['username'] ?? null,
+            'password' => $dbConfig['password'] ?? null,
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+            'engine' => null,
+        ];
+
+        $candidates = array_filter([
+            $dbConfig['database'] ?? null,
+            'information_schema',
+            'mysql',
+        ]);
+
+        foreach ($candidates as $candidate) {
+            try {
+                config(['database.connections.' . $connectionName => $baseConfig + ['database' => $candidate]]);
+                $connection = DB::connection($connectionName);
+                $rows = $connection->select('SHOW DATABASES');
+                return array_values(array_map(function ($row) {
+                    return $row->Database ?? $row->database ?? null;
+                }, $rows));
+            } catch (Exception $e) {
+                continue;
+            }
+        }
+
+        return [];
+    }
+
+    private function matchDatabaseSelection(string $message, array $availableDatabases): ?string
+    {
+        $messageLower = Str::lower($message);
+        $matches = [];
+
+        foreach ($availableDatabases as $database) {
+            if (!$database) {
+                continue;
+            }
+            if (Str::contains($messageLower, Str::lower($database))) {
+                $matches[] = $database;
+            }
+        }
+
+        if (count($matches) === 1) {
+            return $matches[0];
+        }
+
+        return null;
+    }
+
+    private function respondWithDatabaseSelection(Request $request, ?string $chatId, array $availableDatabases)
+    {
+        $databases = array_values(array_filter($availableDatabases));
+        $formatted = collect($databases)->map(function ($db) {
+            return "`{$db}`";
+        })->implode(', ');
+
+        $message = "I can connect to your server, but there are multiple databases available: {$formatted}.\n\nWhich database should I use? Reply with the database name.";
+        $aiContent = app(MarkdownRenderer::class)->toHtml($message);
+
+        if ($chatId) {
+            $chatHistory = AnalyticsChatHistory::findOrFail($chatId);
+        } else {
+            $chatHistory = AnalyticsChatHistory::create([
+                'user_id' => Auth::id() ?? 1,
+                'title' => substr($request->message, 0, 50)
+            ]);
+        }
+
+        AnalyticsChatMessage::create([
+            'chat_history_id' => $chatHistory->id,
+            'role' => 'user',
+            'content' => $request->message
+        ]);
+
+        AnalyticsChatMessage::create([
+            'chat_history_id' => $chatHistory->id,
+            'role' => 'assistant',
+            'content' => $aiContent
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'content' => $aiContent,
+            'chat_id' => $chatHistory->id
+        ]);
     }
 
     public function loadHistory()

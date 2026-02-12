@@ -41,11 +41,62 @@ class DatabaseConfigController extends Controller
             return response()->json(['success' => true, 'message' => 'Connection successful!']);
         } catch (\Exception $e) {
             $message = $e->getMessage();
+            $availableDatabases = $this->listDatabases($config);
+            if (!empty($availableDatabases)) {
+                $formatted = collect($availableDatabases)->map(function ($db) {
+                    return "`{$db}`";
+                })->implode(', ');
+                $message = "Connection works, but the selected database was not found. Available databases: {$formatted}.";
+                return response()->json(['success' => false, 'message' => $message]);
+            }
             if ($e instanceof \Illuminate\Database\QueryException || str_contains($message, 'SQLSTATE')) {
                 $message = "Database connection error. Please check your configuration and credentials.";
             }
             return response()->json(['success' => false, 'message' => 'Connection failed: ' . $message]);
         }
+    }
+
+    private function listDatabases(array $config): array
+    {
+        $driver = $config['connection'] ?? 'mysql';
+        if ($driver !== 'mysql') {
+            return [];
+        }
+
+        $connectionName = 'temp_probe';
+        $baseConfig = [
+            'driver' => $driver,
+            'host' => $config['host'] ?? null,
+            'port' => $config['port'] ?? null,
+            'username' => $config['username'] ?? null,
+            'password' => $config['password'] ?? null,
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+            'engine' => null,
+        ];
+
+        $candidates = array_filter([
+            $config['database'] ?? null,
+            'information_schema',
+            'mysql',
+        ]);
+
+        foreach ($candidates as $candidate) {
+            try {
+                Config::set('database.connections.' . $connectionName, $baseConfig + ['database' => $candidate]);
+                $connection = DB::connection($connectionName);
+                $rows = $connection->select('SHOW DATABASES');
+                return array_values(array_map(function ($row) {
+                    return $row->Database ?? $row->database ?? null;
+                }, $rows));
+            } catch (\Exception $e) {
+                continue;
+            }
+        }
+
+        return [];
     }
 
     public function storeDatabaseConfig(Request $request)

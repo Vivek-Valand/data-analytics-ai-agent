@@ -58,6 +58,20 @@ class SchemaFetcher
             ");
         }
 
+        if ($config && !empty($config['databases']) && is_array($config['databases'])) {
+            $schemas = array_values(array_filter($config['databases']));
+            $quoted = implode(',', array_map(function ($schema) {
+                return "'" . str_replace("'", "''", $schema) . "'";
+            }, $schemas));
+
+            return $connection->select("
+                SELECT CONCAT(table_schema, '.', table_name) AS table_name, column_name, data_type
+                FROM information_schema.columns
+                WHERE table_schema IN ({$quoted})
+                ORDER BY table_schema, table_name, ordinal_position
+            ");
+        }
+
         return $connection->select("
             SELECT table_name, column_name, data_type
             FROM information_schema.columns
