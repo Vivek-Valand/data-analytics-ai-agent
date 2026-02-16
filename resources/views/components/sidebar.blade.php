@@ -1,5 +1,5 @@
 <div id="sidebar"
-    class="bg-[#1e1f20] text-gray-300 w-72 flex-shrink-0 flex flex-col h-screen sticky top-0 z-30 sidebar-transition -translate-x-full md:translate-x-0 overflow-hidden">
+    class="bg-[#1e1f20] text-gray-300 w-72 flex-shrink-0 flex flex-col h-screen fixed inset-y-0 left-0 z-40 md:sticky md:top-0 sidebar-transition -translate-x-full md:translate-x-0 overflow-hidden shadow-2xl md:shadow-none">
 
     <div class="p-6 shrink-0">
         <a href="/analytics" class="text-xl font-bold text-white flex items-center gap-2 mb-8 transition-colors">

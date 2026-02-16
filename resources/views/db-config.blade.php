@@ -29,7 +29,7 @@
                 </div>
 
                 <!-- Form View -->
-                <div id="db-form-container" class="hidden max-w-2xl mx-auto space-y-6 md:space-y-8">
+                <div id="db-form-container" class="hidden max-w-2xl mx-auto space-y-6 md:space-y-8 mb-3">
                     <!-- DB Form -->
                     <div id="db-config-content" class="space-y-4 md:space-y-6">
                         <form id="db-config-form" class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
@@ -71,13 +71,21 @@
                                 <input type="password" name="password"
                                     class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all">
                             </div>
-                            <div class="md:col-span-2 flex flex-col sm:flex-row gap-3 mt-4 md:mt-6">
+                            <div class="md:col-span-2 flex flex-row gap-3 mb-8 mt-2 md:mt-6 w-full">
                                 <button type="button" onclick="showListView()"
-                                    class="order-3 sm:order-1 flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 md:py-4 px-6 rounded-2xl transition-all">Cancel</button>
+                                    class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 md:py-4 px-4 md:px-6 rounded-2xl transition-all">
+                                    Cancel
+                                </button>
+
                                 <button type="button" onclick="testDbConnection()"
-                                    class="order-2 sm:order-2 flex-1 bg-gray-100 hover:bg-gray-200 text-indigo-600 font-bold py-3 md:py-4 px-6 rounded-2xl transition-all">Test</button>
+                                    class="flex-1 bg-gray-100 hover:bg-gray-200 text-indigo-600 font-bold py-3 md:py-4 px-4 md:px-6 rounded-2xl transition-all">
+                                    Test
+                                </button>
+
                                 <button type="button" onclick="saveDbConfig()" id="save-db-btn" disabled
-                                    class="order-1 sm:order-3 flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 md:py-4 px-6 rounded-2xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">Save</button>
+                                    class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 md:py-4 px-4 md:px-6 rounded-2xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                                    Save
+                                </button>
                             </div>
                         </form>
                     </div>

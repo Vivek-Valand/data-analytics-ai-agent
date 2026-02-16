@@ -31,7 +31,7 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->call([
-            AppDataSeeder::class,
+            // AppDataSeeder::class,
             EmailTemplateSeeder::class,
         ]);
     }
