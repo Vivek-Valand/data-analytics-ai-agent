@@ -9,6 +9,7 @@ use App\Models\SqlFileConfig;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Auth;
 
 class DatabaseConfigController extends Controller
 {
@@ -22,7 +23,6 @@ class DatabaseConfigController extends Controller
         $config = $request->all();
         
         try {
-            // Temporarily set the connection configuration
             Config::set('database.connections.temp_test', [
                 'driver' => $config['connection'] ?? 'mysql',
                 'host' => $config['host'],
@@ -112,6 +112,8 @@ class DatabaseConfigController extends Controller
                 'password' => 'nullable|string',
             ]);
 
+            $validated['user_id'] = Auth::id();
+
             DatabaseConfiguration::create($validated);
 
             return response()->json(['success' => true, 'message' => 'Database configuration saved!']);
@@ -133,6 +135,7 @@ class DatabaseConfigController extends Controller
                 $path = $file->store('sql_imports', 'local');
 
                 SqlFileConfig::create([
+                    'user_id' => Auth::id(),
                     'name' => $request->name,
                     'file_path' => $path,
                 ]);
@@ -142,21 +145,21 @@ class DatabaseConfigController extends Controller
 
             return response()->json(['success' => false, 'message' => 'Failed to upload: The sql file failed to upload.']);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Failed to upload: The sql file failed to upload.']);
+            return response()->json(['success' => false, 'message' => 'Failed to upload: ' . $e->getMessage()]);
         }
     }
 
     public function getConfigs()
     {
         return response()->json([
-            'databases' => DatabaseConfiguration::all(),
-            'sqlFiles' => SqlFileConfig::all(),
+            'databases' => DatabaseConfiguration::where('user_id', Auth::id())->get(),
+            'sqlFiles' => SqlFileConfig::where('user_id', Auth::id())->get(),
         ]);
     }
 
     public function show($id)
     {
-        return response()->json(DatabaseConfiguration::findOrFail($id));
+        return response()->json(DatabaseConfiguration::where('user_id', Auth::id())->findOrFail($id));
     }
 
     public function update(Request $request, $id)
@@ -172,7 +175,7 @@ class DatabaseConfigController extends Controller
                 'password' => 'nullable|string',
             ]);
 
-            $config = DatabaseConfiguration::findOrFail($id);
+            $config = DatabaseConfiguration::where('user_id', Auth::id())->findOrFail($id);
             $config->update($validated);
 
             return response()->json(['success' => true, 'message' => 'Database configuration updated!']);
@@ -184,9 +187,9 @@ class DatabaseConfigController extends Controller
     public function destroy($type, $id)
     {
         if ($type === 'db') {
-            DatabaseConfiguration::findOrFail($id)->delete();
+            DatabaseConfiguration::where('user_id', Auth::id())->findOrFail($id)->delete();
         } else {
-            $config = SqlFileConfig::findOrFail($id);
+            $config = SqlFileConfig::where('user_id', Auth::id())->findOrFail($id);
             Storage::disk('local')->delete($config->file_path);
             $config->delete();
         }

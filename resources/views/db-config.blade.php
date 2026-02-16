@@ -5,103 +5,103 @@
 @section('content')
     <div class="max-w-5xl mx-auto w-full p-4 md:p-10 overflow-y-auto">
         <div class="glass-card overflow-hidden">
-            <div class="p-8 border-b flex justify-between items-center bg-gray-50/50">
-                <h3 id="page-title" class="text-2xl font-bold text-gray-900">Database Connections</h3>
+            <div class="p-6 md:p-8 border-b flex flex-col sm:flex-row justify-between items-center bg-gray-50/50 gap-4">
+                <h3 id="page-title" class="text-xl md:text-2xl font-bold text-gray-900">Database Connections</h3>
                 <button id="add-new-btn" onclick="showAddForm()"
-                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-8 rounded-2xl transition-all shadow-lg active:scale-95">
+                    class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-2xl transition-all shadow-lg active:scale-95">
                     Add New Connection
                 </button>
             </div>
 
-            <div id="page-tabs" class="flex border-b bg-gray-50/30 hidden">
+            <div id="page-tabs" class="flex border-b bg-gray-50/30 hidden overflow-x-auto whitespace-nowrap">
                 <button onclick="switchTab('db-config')" id="tab-db-config"
-                    class="px-8 py-4 text-sm font-bold border-b-2 border-indigo-600 text-indigo-600 transition-all uppercase tracking-wider">Database
+                    class="px-6 md:px-8 py-4 text-xs md:text-sm font-bold border-b-2 border-indigo-600 text-indigo-600 transition-all uppercase tracking-wider">Database
                     Config</button>
                 {{-- <button onclick="switchTab('sql-import')" id="tab-sql-import"
-                    class="px-8 py-4 text-sm font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-700 transition-all uppercase tracking-wider">SQL
-                    File Import</button> --}}
+                    class="px-6 md:px-8 py-4 text-xs md:text-sm font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-700 transition-all uppercase tracking-wider">SQL
+                    Import</button> --}}
             </div>
 
-            <div class="p-8">
+            <div class="p-4 md:p-8">
                 <!-- List View -->
-                <div id="db-list-content" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div id="db-list-content" class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <!-- Items will be loaded here -->
                 </div>
 
                 <!-- Form View -->
-                <div id="db-form-container" class="hidden max-w-2xl mx-auto space-y-8">
+                <div id="db-form-container" class="hidden max-w-2xl mx-auto space-y-6 md:space-y-8">
                     <!-- DB Form -->
-                    <div id="db-config-content" class="space-y-6">
-                        <form id="db-config-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div id="db-config-content" class="space-y-4 md:space-y-6">
+                        <form id="db-config-form" class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                             <input type="hidden" name="config_id" id="config-id-input">
                             <div class="md:col-span-2">
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">Connection
                                     Name</label>
                                 <input type="text" name="name" required
-                                    class="w-full px-5 py-3 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all"
+                                    class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all"
                                     placeholder="e.g. Production MySQL">
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">DB Connection</label>
                                 <input type="text" name="connection" value="mysql" required
-                                    class="w-full px-5 py-3 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all">
+                                    class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all">
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">DB Host</label>
                                 <input type="text" name="host" value="127.0.0.1" required
-                                    class="w-full px-5 py-3 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all">
+                                    class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all">
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">DB Port</label>
                                 <input type="text" name="port" value="3306" required
-                                    class="w-full px-5 py-3 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all">
+                                    class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all">
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">DB Database</label>
                                 <input type="text" name="database" required
-                                    class="w-full px-5 py-3 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all">
+                                    class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all">
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">DB Username</label>
                                 <input type="text" name="username" required
-                                    class="w-full px-5 py-3 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all">
+                                    class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all">
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">DB Password</label>
                                 <input type="password" name="password"
-                                    class="w-full px-5 py-3 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all">
+                                    class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all">
                             </div>
-                            <div class="md:col-span-2 flex gap-4 mt-6">
+                            <div class="md:col-span-2 flex flex-col sm:flex-row gap-3 mt-4 md:mt-6">
                                 <button type="button" onclick="showListView()"
-                                    class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-4 px-8 rounded-2xl transition-all">Cancel</button>
+                                    class="order-3 sm:order-1 flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 md:py-4 px-6 rounded-2xl transition-all">Cancel</button>
                                 <button type="button" onclick="testDbConnection()"
-                                    class="flex-1 bg-gray-100 hover:bg-gray-200 text-indigo-600 font-bold py-4 px-8 rounded-2xl transition-all">Test</button>
+                                    class="order-2 sm:order-2 flex-1 bg-gray-100 hover:bg-gray-200 text-indigo-600 font-bold py-3 md:py-4 px-6 rounded-2xl transition-all">Test</button>
                                 <button type="button" onclick="saveDbConfig()" id="save-db-btn" disabled
-                                    class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-2xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">Save</button>
+                                    class="order-1 sm:order-3 flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 md:py-4 px-6 rounded-2xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">Save</button>
                             </div>
                         </form>
                     </div>
 
                     <!-- SQL Form -->
-                    <div id="sql-import-content" class="hidden space-y-6">
-                        <form id="sql-import-form" class="space-y-6">
+                    <div id="sql-import-content" class="hidden space-y-4 md:space-y-6">
+                        <form id="sql-import-form" class="space-y-4 md:space-y-6">
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">Import Name</label>
                                 <input type="text" name="name" required
-                                    class="w-full px-5 py-3 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all"
+                                    class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all"
                                     placeholder="e.g. Legacy Sales Data">
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">SQL File
                                     (.sql)</label>
                                 <input type="file" name="sql_file" id="sql-file-input" accept=".sql" required
-                                    class="w-full px-5 py-3 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all bg-white">
+                                    class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all bg-white text-sm">
                             </div>
-                            <div class="flex gap-4 mt-6">
+                            <div class="flex flex-col sm:flex-row gap-3 mt-4 md:mt-6">
                                 <button type="button" onclick="showListView()"
-                                    class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-4 px-8 rounded-2xl transition-all">Cancel</button>
+                                    class="order-2 sm:order-1 flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 md:py-4 px-6 rounded-2xl transition-all">Cancel</button>
                                 <button type="button" onclick="uploadSqlFile()"
-                                    class="flex-[2] bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-2xl transition-all shadow-lg">Upload
+                                    class="order-1 sm:order-2 flex-[2] bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 md:py-4 px-6 rounded-2xl transition-all shadow-lg">Upload
                                     & Import</button>
                             </div>
                         </form>
@@ -177,25 +177,41 @@
         }
 
         async function deleteDbConfig(type, id) {
-            if (!confirm(`Are you sure you want to delete this ${type === 'db' ? 'database' : 'SQL file'}?`)) return;
-            try {
-                const res = await fetch(`/api/db-config/${type}/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Accept': 'application/json'
-                    }
-                });
-                const result = await res.json();
-                if (result.success) {
-                    showToast(result.message, 'success');
-                    loadDbConfigs();
-                } else {
-                    showToast(result.message, 'error');
+            Swal.fire({
+                title: 'Are you sure?',
+                text: `Do you want to delete this ${type === 'db' ? 'database connection' : 'SQL file'}?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#4f46e5',
+                cancelButtonColor: '#ef4444',
+                confirmButtonText: 'Yes, delete it!',
+                customClass: {
+                    popup: 'rounded-3xl',
+                    confirmButton: 'rounded-xl px-6 py-3',
+                    cancelButton: 'rounded-xl px-6 py-3'
                 }
-            } catch (e) {
-                showToast("Delete failed: " + e.message);
-            }
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        const res = await fetch(`/api/db-config/${type}/${id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json'
+                            }
+                        });
+                        const result = await res.json();
+                        if (result.success) {
+                            showToast(result.message, 'success');
+                            loadDbConfigs();
+                        } else {
+                            showToast(result.message, 'error');
+                        }
+                    } catch (e) {
+                        showToast("Delete failed: " + e.message);
+                    }
+                }
+            });
         }
 
         function switchTab(tab) {
@@ -319,45 +335,45 @@
 
                 if (data.databases.length === 0 && data.sqlFiles.length === 0) {
                     $listContainer.html(
-                        '<div class="col-span-full text-center text-gray-400 py-20 bg-white rounded-3xl border border-dashed border-gray-300">No connections configured. Click "Add New" to get started.</div>'
-                        );
+                        '<div class="col-span-full text-center text-gray-400 py-16 md:py-20 bg-white rounded-3xl border border-dashed border-gray-300 px-6">No connections configured. Click "Add New" to get started.</div>'
+                    );
                 }
 
                 data.databases.forEach(db => {
                     const $item = $('<div>').addClass(
-                        'flex flex-col p-6 bg-white rounded-3xl border border-gray-200 hover:border-indigo-500 transition-all group shadow-sm'
-                        );
+                        'flex flex-col p-5 md:p-6 bg-white rounded-3xl border border-gray-200 hover:border-indigo-500 transition-all group shadow-sm'
+                    );
                     $item.html(`
                     <div class="flex items-start justify-between mb-4">
-                        <div class="p-4 bg-indigo-50 text-indigo-600 rounded-2xl group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>
+                        <div class="p-3 md:p-4 bg-indigo-50 text-indigo-600 rounded-2xl group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                            <svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>
                         </div>
-                        <div class="flex gap-2">
+                        <div class="flex gap-1 md:gap-2">
                             <button onclick="editDbConfig(${db.id})" class="p-2 text-gray-400 hover:text-indigo-600 rounded-lg transition-all"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg></button>
                             <button onclick="deleteDbConfig('db', ${db.id})" class="p-2 text-gray-400 hover:text-red-600 rounded-lg transition-all"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
                         </div>
                     </div>
-                    <div class="text-xl font-bold text-gray-900 mb-1">${db.name}</div>
-                    <div class="text-sm text-gray-500 font-medium">${db.database} • ${db.host}</div>
+                    <div class="text-lg md:text-xl font-bold text-gray-900 mb-1 truncate">${db.name}</div>
+                    <div class="text-xs md:text-sm text-gray-500 font-medium truncate">${db.database} • ${db.host}</div>
                 `);
                     $listContainer.append($item);
                 });
 
                 data.sqlFiles.forEach(sql => {
                     const $item = $('<div>').addClass(
-                        'flex flex-col p-6 bg-white rounded-3xl border border-gray-200 hover:border-purple-500 transition-all group shadow-sm'
-                        );
+                        'flex flex-col p-5 md:p-6 bg-white rounded-3xl border border-gray-200 hover:border-purple-500 transition-all group shadow-sm'
+                    );
                     $item.html(`
                     <div class="flex items-start justify-between mb-4">
-                        <div class="p-4 bg-purple-50 text-purple-600 rounded-2xl group-hover:bg-purple-600 group-hover:text-white transition-all">
-                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <div class="p-3 md:p-4 bg-purple-50 text-purple-600 rounded-2xl group-hover:bg-purple-600 group-hover:text-white transition-all">
+                            <svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         </div>
-                        <div class="flex gap-2">
+                        <div class="flex gap-1 md:gap-2">
                             <button onclick="deleteDbConfig('sql', ${sql.id})" class="p-2 text-gray-400 hover:text-red-600 rounded-lg transition-all"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
                         </div>
                     </div>
-                    <div class="text-xl font-bold text-gray-900 mb-1">${sql.name}</div>
-                    <div class="text-sm text-gray-500 font-medium font-medium">SQL File Import</div>
+                    <div class="text-lg md:text-xl font-bold text-gray-900 mb-1 truncate">${sql.name}</div>
+                    <div class="text-xs md:text-sm text-gray-500 font-medium truncate">SQL File Import</div>
                 `);
                     $listContainer.append($item);
                 });
