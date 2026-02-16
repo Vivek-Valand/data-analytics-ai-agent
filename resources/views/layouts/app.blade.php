@@ -10,7 +10,13 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="/css/app.css">
+    <style>
+        body.swal2-height-auto {
+            height: 100vh !important;
+        }
+    </style>
     @yield('styles')
 </head>
 

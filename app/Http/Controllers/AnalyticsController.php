@@ -32,10 +32,10 @@ class AnalyticsController extends Controller
             $messages = [];
 
             if ($chatId) {
-                $dbMessages = AnalyticsChatMessage::where(function($query) use ($chatId) {
-                    $query->where('thread_id', $chatId)
-                          ->orWhere('chat_history_id', $chatId);
-                })->orderBy('created_at')->get();
+                // Ensure chat belongs to user
+                AnalyticsChatHistory::where('user_id', Auth::id())->findOrFail($chatId);
+
+                $dbMessages = AnalyticsChatMessage::where('chat_history_id', $chatId)->orderBy('created_at')->get();
 
                 foreach ($dbMessages as $msg) {
                     if ($msg->role === 'user') {
@@ -53,13 +53,11 @@ class AnalyticsController extends Controller
             if ($dbConfigId && $dbConfigId !== 'default') {
                 if (str_starts_with($dbConfigId, 'db:')) {
                     $id = explode(':', $dbConfigId)[1];
-                    $dbConfig = \App\Models\DatabaseConfiguration::find($id)?->toArray();
+                    $dbConfig = \App\Models\DatabaseConfiguration::where('user_id', Auth::id())->find($id)?->toArray();
                 } elseif (str_starts_with($dbConfigId, 'sql:')) {
                     $id = explode(':', $dbConfigId)[1];
-                    $sqlConfig = \App\Models\SqlFileConfig::find($id);
+                    $sqlConfig = \App\Models\SqlFileConfig::where('user_id', Auth::id())->find($id);
                     if ($sqlConfig) {
-                        // For SQL files, we'll try to use a temporary SQLite connection
-                        // This is a simplified version: we inform the agent about the file
                         $dbConfig = [
                             'name' => $sqlConfig->name,
                             'sql_file' => $sqlConfig->file_path,
@@ -80,6 +78,7 @@ class AnalyticsController extends Controller
                         $dbConfig['database'] = $selectedDatabase;
                         if (!empty($dbConfig['id'])) {
                             DatabaseConfiguration::where('id', $dbConfig['id'])
+                                ->where('user_id', Auth::id())
                                 ->update(['database' => $selectedDatabase]);
                         }
                     } elseif (empty($currentDatabase) || !in_array($currentDatabase, $availableDatabases, true)) {
@@ -92,30 +91,25 @@ class AnalyticsController extends Controller
                 ->withChatHistory($history)
                 ->withDbConfig($dbConfig);
 
-            // Get response WITHOUT saving yet
             $response = $agent->chat(new UserMessage($request->message));
-            // $aiContent = $response->getContent();
             $content = $response->getContent();
             $aiContent = app(MarkdownRenderer::class)->toHtml($content);
 
-            // If we get here, AI responded properly. Now persist.
             if ($chatId) {
-                $chatHistory = AnalyticsChatHistory::findOrFail($chatId);
+                $chatHistory = AnalyticsChatHistory::where('user_id', Auth::id())->findOrFail($chatId);
             } else {
                 $chatHistory = AnalyticsChatHistory::create([
-                    'user_id' => Auth::id() ?? 1,
+                    'user_id' => Auth::id(),
                     'title' => substr($request->message, 0, 50)
                 ]);
             }
 
-            // Save User Message
             AnalyticsChatMessage::create([
                 'chat_history_id' => $chatHistory->id,
                 'role' => 'user',
                 'content' => $request->message
             ]);
 
-            // Save Assistant Message
             AnalyticsChatMessage::create([
                 'chat_history_id' => $chatHistory->id,
                 'role' => 'assistant',
@@ -200,47 +194,9 @@ class AnalyticsController extends Controller
         return null;
     }
 
-    private function respondWithDatabaseSelection(Request $request, ?string $chatId, array $availableDatabases)
-    {
-        $databases = array_values(array_filter($availableDatabases));
-        $formatted = collect($databases)->map(function ($db) {
-            return "`{$db}`";
-        })->implode(', ');
-
-        $message = "I can connect to your server, but there are multiple databases available: {$formatted}.\n\nWhich database should I use? Reply with the database name.";
-        $aiContent = app(MarkdownRenderer::class)->toHtml($message);
-
-        if ($chatId) {
-            $chatHistory = AnalyticsChatHistory::findOrFail($chatId);
-        } else {
-            $chatHistory = AnalyticsChatHistory::create([
-                'user_id' => Auth::id() ?? 1,
-                'title' => substr($request->message, 0, 50)
-            ]);
-        }
-
-        AnalyticsChatMessage::create([
-            'chat_history_id' => $chatHistory->id,
-            'role' => 'user',
-            'content' => $request->message
-        ]);
-
-        AnalyticsChatMessage::create([
-            'chat_history_id' => $chatHistory->id,
-            'role' => 'assistant',
-            'content' => $aiContent
-        ]);
-
-        return response()->json([
-            'status' => 'success',
-            'content' => $aiContent,
-            'chat_id' => $chatHistory->id
-        ]);
-    }
-
     public function loadHistory()
     {
-        $histories = AnalyticsChatHistory::where('user_id', Auth::id() ?? 1)
+        $histories = AnalyticsChatHistory::where('user_id', Auth::id())
             ->orderBy('created_at', 'desc')
             ->get(['id', 'title', 'created_at']);
         return response()->json($histories);
@@ -248,11 +204,10 @@ class AnalyticsController extends Controller
 
     public function loadMessages($id)
     {
-        // Query by thread_id OR chat_history_id for backward compatibility
-        $messages = AnalyticsChatMessage::where(function($query) use ($id) {
-            $query->where('thread_id', $id)
-                  ->orWhere('chat_history_id', $id);
-        })
+        // Ensure chat belongs to user
+        AnalyticsChatHistory::where('user_id', Auth::id())->findOrFail($id);
+
+        $messages = AnalyticsChatMessage::where('chat_history_id', $id)
             ->orderBy('created_at')
             ->get();
         return response()->json($messages);
@@ -260,7 +215,7 @@ class AnalyticsController extends Controller
 
     public function deleteChat($id)
     {
-        $history = AnalyticsChatHistory::where('user_id', Auth::id() ?? 1)->findOrFail($id);
+        $history = AnalyticsChatHistory::where('user_id', Auth::id())->findOrFail($id);
         $history->delete();
         return response()->json(['status' => 'success']);
     }
@@ -268,7 +223,7 @@ class AnalyticsController extends Controller
     public function renameChat(Request $request, $id)
     {
         $request->validate(['title' => 'required|string|max:255']);
-        $history = AnalyticsChatHistory::where('user_id', Auth::id() ?? 1)->findOrFail($id);
+        $history = AnalyticsChatHistory::where('user_id', Auth::id())->findOrFail($id);
         $history->update(['title' => $request->title]);
         return response()->json(['status' => 'success']);
     }
