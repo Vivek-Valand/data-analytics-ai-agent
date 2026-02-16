@@ -4,7 +4,7 @@
 
             <!-- DB Selector -->
             <select id="db-selector"
-                class="bg-transparent text-xs text-gray-500 focus:outline-none focus:ring-0 px-3 py-2 rounded-xl border border-gray-200">
+                class="bg-transparent text-[10px] sm:text-xs text-gray-500 focus:outline-none focus:ring-0 px-2 sm:px-3 py-2 rounded-xl border border-gray-200 min-w-[80px] sm:min-w-[120px]">
                 <option value="default">Default DB</option>
             </select>
 
